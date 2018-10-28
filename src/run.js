@@ -34,39 +34,9 @@ const times = (cx, cy, r, start, end, increments) => {
     }),
     svgNode('text', {
       textContent: year + '',
-      x: cx + Math.cos(t0) * rad - 7,
+      x: cx + Math.cos(t0) * rad + 7,
       y: cy + Math.sin(t0) * rad + 7
     })]))
-    // let r0 = rad;
-    // let r1 = r;
-    // let radials = Math.pow(2, y)
-    // const th0 = t0;
-    // const th1 = t1 + Math.PI * 2;
-    // if (y <= 5 && y > 1) {
-
-    //   for (let t = 0; t < radials; t++) {
-    //     if (t % 2 == 0) {
-    //       continue
-    //     }
-    //     const theta = th1 + (th0 - th1) * t / radials
-    //     items.push(svgNode('path', {
-    //       d: `M${
-    //       cx + Math.cos(theta) * r0
-    //       } ${
-    //       cy + Math.sin(theta) * r0
-    //       } L ${
-    //       cx + Math.cos(theta) * r
-    //       } ${
-    //       cy + Math.sin(theta) * r
-    //       }`,
-    //       style: {
-    //         stroke: 'blue',
-    //         strokeDasharray: '1 8',
-    //       }
-
-    //     }))
-    //   }
-    // }
   }
   return svgNode('g', {}, items)
 }
