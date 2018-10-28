@@ -2,23 +2,19 @@
 export const node = (tag, attrs, children) => {
   var node = attrs && attrs.ns ? document.createElementNS(attrs.ns, tag) : document.createElement(tag);
   if (children) {
-    if (!Array.isArray(children)) {
-      node.appendChild(
-        typeof children === "string" || typeof children === "number"
-          ? document.createTextNode("" + children)
-          : children
-      );
-    } else {
-      children.forEach(
-        child =>
-          child &&
-          node.appendChild(
-            typeof child === "string" || typeof child === "number"
-              ? document.createTextNode("" + child)
-              : child
-          )
-      );
-    }
+    const addChild = child => {
+      if (!child) return
+      if (Array.isArray(child)) {
+        child.forEach(addChild)
+      } else {
+        node.appendChild(
+          typeof child === "string" || typeof child === "number"
+            ? document.createTextNode("" + child)
+            : child
+        );
+      }
+    };
+    addChild(children)
   }
   if (attrs && attrs.ref) {
     attrs.ref(node);

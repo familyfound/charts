@@ -125,27 +125,27 @@ const renderPerson = (pid, showHover, hideHover) => {
   const tEnd = t0 + tDiff * ((pos + 1) / count);
   const color = genColors[gen % genColors.length];
   console.log(tStart, tEnd)
-  const me = svgNode('path', {
-    d: `M` + arc(center.x, center.y, tStart, tEnd, r0, 0)
-     + ' L ' + arc(center.x, center.y, tEnd, tStart, r1, 0, 0)
-     + ' Z ',
-    style: {
-      fill: `rgba(${color.r},${color.g},${color.b},0.4)`,
-      stroke: '#fff',
-    },
+  const me = svgNode('g', {
+    class: 'person',
     onmousemove: (evt, node) => {
-      node.style.strokeWidth = '4px'
-      node.style.stroke = '#000'
-      console.log(person.name)
+      node.setAttribute('class', 'person-hover')
       showHover({x: evt.clientX, y: evt.clientY}, person)
-
     },
     onmouseout: (evt, node) => {
-      node.style.strokeWidth = '1px'
-      node.style.stroke = '#fff'
+      node.setAttribute('class', 'person')
       hideHover()
     }
-  })
+  }, [
+    svgNode('path', {
+      d: `M` + arc(center.x, center.y, tStart, tEnd, r0, 0)
+      + ' L ' + arc(center.x, center.y, tEnd, tStart, r1, 0, 0)
+      + ' Z ',
+      style: {
+        fill: `rgba(${color.r},${color.g},${color.b},0.4)`,
+        // stroke: '#fff',
+      },
+    })
+  ])
   return me
 };
 

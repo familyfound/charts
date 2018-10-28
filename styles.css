@@ -18,3 +18,12 @@ text {
   padding: 5px;
   pointer-events: none;
 }
+
+.person path {
+  stroke-width: 1px;
+  stroke: #fff;
+}
+.person-hover path {
+  stroke-width: 4px;
+  stroke: #000;
+}
