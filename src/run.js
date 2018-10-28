@@ -105,7 +105,7 @@ const genColors = [
   {r: 255, g: 118, b: 41},
 ]
 
-const renderPerson = (pid) => {
+const renderPerson = (pid, showHover, hideHover) => {
   const person = people[pid];
   if (!person) return [];
   const gen = Math.floor(Math.log2(pid));
@@ -131,35 +131,36 @@ const renderPerson = (pid) => {
      + ' Z ',
     style: {
       fill: `rgba(${color.r},${color.g},${color.b},0.4)`,
-              // fill: 'none',
       stroke: '#fff',
     },
-    onmouseover: (evt, node) => {
-      node.style.strokeWidth = '10px'
+    onmousemove: (evt, node) => {
+      node.style.strokeWidth = '4px'
       node.style.stroke = '#000'
       console.log(person.name)
+      showHover({x: evt.clientX, y: evt.clientY}, person)
 
     },
     onmouseout: (evt, node) => {
       node.style.strokeWidth = '1px'
       node.style.stroke = '#fff'
+      hideHover()
     }
   })
   return me
-  // return [...renderPeople(pid * 2), ...renderPeople(pid * 2 + 1), me]
 };
 
-const renderPeople = () => {
+const renderPeople = (showHover, hideHover) => {
   return peopleList.map(person => {
     const num = parseInt(person.ascendancyNumber)
     if (isNaN(num)) {
       return
     }
-    return renderPerson(num)
+    return renderPerson(num, showHover, hideHover)
   }).reverse()
 }
 
 const renderPage = () => {
+  let hover;
   return div(
     null,
     [
@@ -174,9 +175,25 @@ const renderPage = () => {
               fill: 'none'
             }
           }),
-          ...renderPeople(1),
+          ...renderPeople((pos, person) => {
+            hover.style.display = 'block'
+            hover.style.top = pos.y + 15 + 'px'
+            hover.style.left = pos.x + 15 + 'px'
+            render(hover, div({}, [
+              div({}, person.name),
+              div({}, person.lifespan),
+              div({}, person.birthPlace),
+              div({}, person.deathPlace),
+            ]))
+          }, () => {
+            hover.style.display = 'none'
+          }),
           times(center.x, center.y, radius, minDate, maxDate, 20),
         ]),
+      div({
+        class: 'hover',
+        ref: node => hover = node,
+      })
     ]
   )
 }

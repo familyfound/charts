@@ -20,6 +20,10 @@ export const node = (tag, attrs, children) => {
       );
     }
   }
+  if (attrs && attrs.ref) {
+    attrs.ref(node);
+    delete attrs.ref;
+  }
   for (var attr in attrs) {
     if (attr === 'ns') continue;
     if (attr === "style") {
