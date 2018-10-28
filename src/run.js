@@ -83,7 +83,6 @@ const timeRad = time => (radius ) * Math.max(0, (maxDate - time)) / (maxDate - m
 const intOr = (n, backup, full) => {
   const i = parseInt(n);
   if (isNaN(i)) {
-    console.log('dropping', n, full)
     return backup
   }
   return i
@@ -114,7 +113,7 @@ const renderPerson = (pid, showHover, hideHover) => {
   const percent = pos / count;
   if (person.lifespan.includes('Deceased') || person.lifespan === 'Living') {
     // return [...renderPeople(pid * 2), ...renderPeople(pid * 2 + 1)]
-    return
+    return console.log(person.name)
   }
   const {birth, death} = parseLife(person.lifespan);
   const r0 = timeRad(birth);
@@ -124,7 +123,6 @@ const renderPerson = (pid, showHover, hideHover) => {
   const tStart = t0 + tDiff * (pos / count);
   const tEnd = t0 + tDiff * ((pos + 1) / count);
   const color = genColors[gen % genColors.length];
-  console.log(tStart, tEnd)
   const me = svgNode('g', {
     class: 'person',
     onmousemove: (evt, node) => {
@@ -137,7 +135,7 @@ const renderPerson = (pid, showHover, hideHover) => {
     }
   }, [
     svgNode('path', {
-      d: `M` + arc(center.x, center.y, tStart, tEnd, r0, 0)
+      d: `M` + arc(center.x, center.y, tStart, tEnd, r0, pid === 1 ? 1 : 0)
       + ' L ' + arc(center.x, center.y, tEnd, tStart, r1, 0, 0)
       + ' Z ',
       style: {
