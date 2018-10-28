@@ -2,3 +2,8 @@
 text {
   font-size: 8px;
 }
+
+.time-line:hover path {
+  stroke-width: 4px;
+  stroke-dasharray: none!important;
+}

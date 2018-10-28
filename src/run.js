@@ -22,49 +22,51 @@ const times = (cx, cy, r, start, end, increments) => {
   for (let y = 0; y <= lines; y+=1) {
     const year = end - increments * (y )
     const rad = r * ((y ) / (lines ))
-    items.push(svgNode('path', {
+    items.push(svgNode('g', {
+      class: 'time-line',
+    }, [svgNode('path', {
       d: 'M' + arc(cx, cy, t0, t1, rad),
       style: {
         fill: 'none',
         stroke: 'red',
         strokeDasharray: y % 2 == 0 ? '1 4' : '1 8',
       }
-    }))
-    items.push(svgNode('text', {
+    }),
+    svgNode('text', {
       textContent: year + '',
-      x: cx - 7,
-      y: cy - rad + 7
-    }))
-    let r0 = rad;
-    let r1 = r;
-    let radials = Math.pow(2, y)
-    const th0 = t0;
-    const th1 = t1 + Math.PI * 2;
-    if (y <= 5 && y > 1) {
+      x: cx + Math.cos(t0) * rad - 7,
+      y: cy + Math.sin(t0) * rad + 7
+    })]))
+    // let r0 = rad;
+    // let r1 = r;
+    // let radials = Math.pow(2, y)
+    // const th0 = t0;
+    // const th1 = t1 + Math.PI * 2;
+    // if (y <= 5 && y > 1) {
 
-      for (let t = 0; t < radials; t++) {
-        if (t % 2 == 0) {
-          continue
-        }
-        const theta = th1 + (th0 - th1) * t / radials
-        items.push(svgNode('path', {
-          d: `M${
-          cx + Math.cos(theta) * r0
-          } ${
-          cy + Math.sin(theta) * r0
-          } L ${
-          cx + Math.cos(theta) * r
-          } ${
-          cy + Math.sin(theta) * r
-          }`,
-          style: {
-            stroke: 'blue',
-            strokeDasharray: '1 8',
-          }
+    //   for (let t = 0; t < radials; t++) {
+    //     if (t % 2 == 0) {
+    //       continue
+    //     }
+    //     const theta = th1 + (th0 - th1) * t / radials
+    //     items.push(svgNode('path', {
+    //       d: `M${
+    //       cx + Math.cos(theta) * r0
+    //       } ${
+    //       cy + Math.sin(theta) * r0
+    //       } L ${
+    //       cx + Math.cos(theta) * r
+    //       } ${
+    //       cy + Math.sin(theta) * r
+    //       }`,
+    //       style: {
+    //         stroke: 'blue',
+    //         strokeDasharray: '1 8',
+    //       }
 
-        }))
-      }
-    }
+    //     }))
+    //   }
+    // }
   }
   return svgNode('g', {}, items)
 }
@@ -172,8 +174,8 @@ const renderPage = () => {
               fill: 'none'
             }
           }),
-          times(center.x, center.y, radius, minDate, maxDate, 20),
           ...renderPeople(1),
+          times(center.x, center.y, radius, minDate, maxDate, 20),
         ]),
     ]
   )
