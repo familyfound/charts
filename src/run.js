@@ -19,7 +19,7 @@ const times = (cx, cy, r, start, end, increments) => {
   const span = end - start
   const lines = span / increments
   const items = []
-  for (let y = 0; y <= lines; y+=1) {
+  for (let y = 1; y <= lines; y+=1) {
     const year = end - increments * (y )
     const rad = r * ((y ) / (lines ))
     items.push(svgNode('g', {
