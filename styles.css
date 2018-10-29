@@ -21,7 +21,7 @@ text {
 
 .person path {
   stroke-width: 1px;
-  stroke: #fff;
+  stroke: rgba(255,255,255,0.2)
 }
 .person-hover path {
   stroke-width: 4px;
