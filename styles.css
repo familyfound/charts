@@ -3,6 +3,10 @@ text {
   font-size: 8px;
 }
 
+body {
+  font-family: system-ui, sans-serif;
+}
+
 .time-line:hover path {
   stroke-width: 4px;
   stroke-dasharray: none!important;

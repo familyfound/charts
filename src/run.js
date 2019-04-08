@@ -1,6 +1,19 @@
 import { render, node, div, img } from "./framework.js";
 import {people, peopleList, mother, father} from './tree.js';
 
+const tweaks = {
+  headDot: false,
+  headDotSize: 4,
+  footDot: false,
+  footDotSize: 2,
+  dotOpacity: 0.9,
+  line: false,
+  lineWidth: 4,
+  lineOpacity: 0.9,
+  arc: true,
+  arcOpacity: 0.4,
+};
+
 const svgns = 'http://www.w3.org/2000/svg'
 const svgNode = (tag, attrs, children) => node(tag, {...attrs, ns: svgns}, children)
 
@@ -59,10 +72,12 @@ const intOr = (n, backup, full) => {
 }
 
 const parseLife = span => {
-  const [birth, death] = span.split('-')
+  let [birth, death] = span.split('-')
+  birth = intOr(birth, null, span);
+  if (!birth) return
   return {
-    birth: intOr(birth, minDate, span),
-    death: intOr(death, maxDate, span)
+    birth,
+    death: death === 'Living' ? maxDate - 5 : Math.min(maxDate - 5, intOr(death, birth + 80, span))
   }
 };
 
@@ -73,6 +88,18 @@ const genColors = [
   {r: 100, g: 100, b: 255},
   {r: 255, g: 118, b: 41},
 ]
+// genColors.splice(0, genColors.length)
+
+// const colorsRaw = '8dd3c7ffffb3bebadafb807280b1d3fdb462b3de69fccde5d9d9d9bc80bdccebc5ffed6f';
+const colorsRaw = '1f77b4ff7f0e2ca02cd627289467bd8c564be377c27f7f7fbcbd2217becf';
+const colors = [];
+for (let i=0; i<colorsRaw.length; i+=6) {
+  genColors.push({
+    r: parseInt(colorsRaw.slice(i, i+2), 16),
+    g: parseInt(colorsRaw.slice(i+2, i+4), 16),
+    b: parseInt(colorsRaw.slice(i+4, i+6), 16),
+  })
+}
 
 const renderPerson = (pid, showHover, hideHover) => {
   const person = people[pid];
@@ -81,18 +108,34 @@ const renderPerson = (pid, showHover, hideHover) => {
   const count = Math.pow(2, gen);
   const pos = pid - count;
   const percent = pos / count;
-  if (person.lifespan.includes('Deceased') || person.lifespan === 'Living') {
-    // return [...renderPeople(pid * 2), ...renderPeople(pid * 2 + 1)]
-    return console.log(person.name)
+  if (person.lifespan === 'Living') {
+    return
   }
-  const {birth, death} = parseLife(person.lifespan);
+  // if (person.lifespan.includes('Deceased') || person.lifespan === 'Living') {
+  //   // return [...renderPeople(pid * 2), ...renderPeople(pid * 2 + 1)]
+  //   return console.log(person.name, person.lifespan)
+  // }
+  const lifeSpan = parseLife(person.lifespan);
+  if (!lifeSpan) {
+    return console.log(person.name, person.lifespan)
+  }
+  const {birth, death} = lifeSpan
   const r0 = timeRad(birth);
   const r1 = timeRad(death);
   const t0 = Math.PI / 2 + Math.PI / 4
   const tDiff = Math.PI * 6 / 4;
-  const tStart = t0 + tDiff * (pos / count);
-  const tEnd = t0 + tDiff * ((pos + 1) / count);
+  // const tStart = t0 + tDiff * (pos / count);
+  // const tEnd = t0 + tDiff * ((pos + 1) / count);
   const color = genColors[gen % genColors.length];
+
+  const maxWidth = 30;
+  const maxArc = maxWidth / r0;
+
+  const tMid = t0 + tDiff * ((pos + 0.5) / count);
+  // const tOff = pid === 1 ? tDiff * 0.5 / count : Math.min(maxArc, tDiff * 0.5 / count);
+  const tOff0 = tDiff * 0.5 / count - 2 / r0;
+  const tOff1 = tDiff * 0.5 / count - 2 / r1;
+
   const me = svgNode('g', {
     class: 'person',
     onmousemove: (evt, node) => {
@@ -104,13 +147,37 @@ const renderPerson = (pid, showHover, hideHover) => {
       hideHover()
     }
   }, [
-    svgNode('path', {
-      d: `M` + arc(center.x, center.y, tStart, tEnd, r0, pid === 1 ? 1 : 0)
-      + ' L ' + arc(center.x, center.y, tEnd, tStart, r1, 0, 0)
+    tweaks.arc && svgNode('path', {
+      d: `M` + arc(center.x, center.y, tMid - tOff0, tMid + tOff0, r0, pid === 1 ? 1 : 0)
+      + ' L ' + arc(center.x, center.y, tMid + tOff1, tMid - tOff1, r1, 0, 0)
       + ' Z ',
       style: {
-        fill: `rgba(${color.r},${color.g},${color.b},0.4)`,
+        fill: `rgba(${color.r},${color.g},${color.b},${tweaks.arcOpacity})`,
         // stroke: '#fff',
+      },
+    }),
+    tweaks.headDot && svgNode('circle', {
+      cx: center.x + Math.cos(tMid) * r0,
+      cy: center.y + Math.sin(tMid) * r0,
+      r: tweaks.headDotSize,
+      style: {
+        fill: `rgba(${color.r},${color.g},${color.b},${tweaks.dotOpacity})`,
+      }
+    }),
+    tweaks.footDot && svgNode('circle', {
+      cx: center.x + Math.cos(tMid) * r1,
+      cy: center.y + Math.sin(tMid) * r1,
+      r: tweaks.footDotSize,
+      style: {
+        fill: `rgba(${color.r},${color.g},${color.b},${tweaks.dotOpacity})`,
+      }
+    }),
+    tweaks.line && svgNode('path', {
+      d: `M ${center.x + Math.cos(tMid) * r0} ${center.y + Math.sin(tMid) * r0}`
+      + ` L ${center.x + Math.cos(tMid) * r1} ${center.y + Math.sin(tMid) * r1}`,
+      style: {
+        stroke: `rgba(${color.r},${color.g},${color.b},${tweaks.lineOpacity})`,
+        strokeWidth: tweaks.lineWidth + 'px'
       },
     })
   ])
@@ -166,7 +233,61 @@ const renderPage = () => {
   )
 }
 
+const tweakBody = (onChange, key) => {
+  const v = tweaks[key];
+  switch (typeof v) {
+    case 'boolean':
+      return node('input', {type: 'checkbox', checked: v, onchange: () => {
+        tweaks[key] = !v
+        onChange();
+      }})
+    case 'number':
+      return node('input', {style: {width: '40px'}, type: 'number', value: v, onchange: (evt) => {
+        tweaks[key] = parseFloat(evt.target.value)
+        onChange();
+      }})
+    default:
+      return null
+  }
+}
+
+const renderTweaks = (onChange) => {
+  console.log('rendering')
+  return div({}, Object.keys(tweaks).map(key => {
+    return div({
+    }, [
+      key,
+      tweakBody(onChange, key)
+    ])
+  }))
+}
+
+const rerenderable = (fn) => {
+  let node = null;
+  let rerender = () => {
+    let newNode = fn(rerender);
+    if (node && node.parentNode) {
+      node.replaceWith(newNode)
+    }
+    node = newNode
+  }
+  let newNode = fn(rerender)
+  if (node != null) {
+    // we rerendered synchronously
+    return node
+  }
+  node = newNode;
+  return node;
+}
+
+const renderWithTweaks = (render) => rerenderable(rerender => 
+  div({}, [
+    renderTweaks(rerender),
+    render(),
+  ])
+);
+
 render(
   document.getElementById("main"),
-  renderPage()
+  renderWithTweaks(renderPage)
 );
