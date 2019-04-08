@@ -27,6 +27,10 @@ body {
   stroke-width: 1px;
   stroke: rgba(255,255,255,0.2)
 }
+.person-hover circle {
+  stroke-width: 2px;
+  stroke: #000;
+}
 .person-hover path {
   stroke-width: 2px;
   stroke: #000;
