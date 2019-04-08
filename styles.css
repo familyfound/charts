@@ -14,7 +14,7 @@ body {
 
 .hover {
   display: none;
-  position: absolute;
+  position: fixed;
   z-index: 1000;
   background-color: white;
   box-shadow: 0 0 5px #aaa;

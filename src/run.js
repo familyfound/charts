@@ -1,18 +1,41 @@
 import { render, node, div, img } from "./framework.js";
 import {people, peopleList, mother, father} from './tree.js';
 
+const presets = {
+  stars: {"headDot":true,"headDotSize":3,"dotPlace":true,"footDot":true,"footDotSize":3,"largeFootEmigrated":true,"dotOpacity":0.9,"line":false,"lineWidth":2,"lineOpacity":0.9,"linePlace":true,"arcPlace":true,"arc":false,"arcOpacity":0.3,"arcMargin":2},
+  generation_lines: {"headDot":true,"headDotSize":3,"dotPlace":false,"footDot":false,"footDotSize":3,"largeFootEmigrated":false,"dotOpacity":0.9,"line":true,"lineWidth":2,"lineOpacity":0.9,"linePlace":false,"arcPlace":false,"arc":true,"arcOpacity":0.1,"arcMargin":2},
+  simple_place: {"headDot":false,"headDotSize":3,"dotPlace":false,"footDot":false,"footDotSize":3,"largeFootEmigrated":false,"dotOpacity":0.6,"line":false,"lineWidth":2,"lineOpacity":0.9,"linePlace":false,"arcPlace":true,"arc":true,"arcOpacity":0.2,"arcMargin":2},
+  simple_generations: {"headDot":true,"headDotSize":3,"dotPlace":false,"footDot":false,"footDotSize":3,"largeFootEmigrated":false,"dotOpacity":0.6,"line":false,"lineWidth":2,"lineOpacity":0.9,"linePlace":false,"arcPlace":false,"arc":true,"arcOpacity":0.3,"arcMargin":2},
+  lines_place: {"headDot":true,"headDotSize":4,"dotPlace":true,"footDot":true,"footDotSize":4,"largeFootEmigrated":true,"dotOpacity":0.6,"line":true,"lineWidth":4,"lineOpacity":0.3,"linePlace":true,"arcPlace":false,"arc":false,"arcOpacity":0.3,"arcMargin":2},
+  emigrated_generations: {"headDot":true,"headDotSize":4,"dotPlace":false,"footDot":true,"footDotSize":4,"largeFootEmigrated":true,"dotOpacity":0.6,"line":true,"lineWidth":3,"lineOpacity":0.4,"linePlace":false,"arcPlace":false,"arc":false,"arcOpacity":0.3,"arcMargin":2},
+}
+
 const tweaks = {
-  headDot: false,
-  headDotSize: 4,
-  footDot: false,
-  footDotSize: 2,
+  headDot: true,
+  headDotSize: 3,
+  dotPlace: true,
+  footDot: true,
+  footDotSize: 3,
+  largeFootEmigrated: true,
   dotOpacity: 0.9,
   line: false,
-  lineWidth: 4,
+  lineWidth: 2,
   lineOpacity: 0.9,
+  linePlace: true,
+  arcPlace: true,
   arc: true,
-  arcOpacity: 0.4,
+  arcOpacity: 0.3,
+  arcMargin: 2,
 };
+
+const groups = {
+  dot: ['dotPlace', 'dotOpacity'],
+  head: ['headDot', 'headDotSize'],
+  foot: ['footDot', 'footDotSize', 'largeFootEmigrated'],
+  line: ['line', 'lineWidth', 'lineOpacity', 'linePlace'],
+  arc: ['arc', 'arcPlace', 'arcOpacity', 'arcMargin']
+}
+
 
 const svgns = 'http://www.w3.org/2000/svg'
 const svgNode = (tag, attrs, children) => node(tag, {...attrs, ns: svgns}, children)
@@ -58,7 +81,7 @@ const times = (cx, cy, r, start, end, increments) => {
 
 const minDate = 1760
 const maxDate = 2010
-const center = {x: 550, y: 500};
+const center = {x: 550, y: 600};
 const radius = 500;
 
 const timeRad = time => (radius ) * Math.max(0, (maxDate - time)) / (maxDate - minDate);
@@ -101,6 +124,28 @@ for (let i=0; i<colorsRaw.length; i+=6) {
   })
 }
 
+const placeColors = {}
+let nextColor = 0
+const placeColor = place => {
+  if (!place) {
+    return {r: 100, g: 100, b: 100}
+  }
+  if (!placeColors[place]) {
+    placeColors[place] = genColors[nextColor]
+    nextColor = (nextColor + 1) % genColors.length
+  }
+  return placeColors[place]
+}
+
+const rgba = ({r, g, b}, a) => `rgba(${r}, ${g}, ${b}, ${a})`;
+
+const getPlace = place => {
+  if (place && place.endsWith(', England, United Kingdom')) {
+    return 'England'
+  }
+  return place ? place.split(',').slice(-1)[0].trim() : null
+}
+
 const renderPerson = (pid, showHover, hideHover) => {
   const person = people[pid];
   if (!person) return [];
@@ -126,15 +171,30 @@ const renderPerson = (pid, showHover, hideHover) => {
   const tDiff = Math.PI * 6 / 4;
   // const tStart = t0 + tDiff * (pos / count);
   // const tEnd = t0 + tDiff * ((pos + 1) / count);
-  const color = genColors[gen % genColors.length];
+  const birthPlace = getPlace(person.birthPlace);
+  const deathPlace = getPlace(person.deathPlace);
+
+  const genColor = genColors[gen % genColors.length];
+  const headColor = tweaks.dotPlace
+  ? placeColor(birthPlace)
+  : genColor;
+  const footColor = tweaks.dotPlace
+  ? placeColor(deathPlace)
+  : genColor;
+  const arcColor = tweaks.arcPlace
+  ? placeColor(birthPlace || deathPlace)
+  : genColor;
+  const lineColor = tweaks.linePlace
+  ? placeColor(birthPlace || deathPlace)
+  : genColor;
 
   const maxWidth = 30;
   const maxArc = maxWidth / r0;
 
   const tMid = t0 + tDiff * ((pos + 0.5) / count);
   // const tOff = pid === 1 ? tDiff * 0.5 / count : Math.min(maxArc, tDiff * 0.5 / count);
-  const tOff0 = tDiff * 0.5 / count - 2 / r0;
-  const tOff1 = tDiff * 0.5 / count - 2 / r1;
+  const tOff0 = tDiff * 0.5 / count - tweaks.arcMargin / r0;
+  const tOff1 = tDiff * 0.5 / count - tweaks.arcMargin / r1;
 
   const me = svgNode('g', {
     class: 'person',
@@ -152,7 +212,7 @@ const renderPerson = (pid, showHover, hideHover) => {
       + ' L ' + arc(center.x, center.y, tMid + tOff1, tMid - tOff1, r1, 0, 0)
       + ' Z ',
       style: {
-        fill: `rgba(${color.r},${color.g},${color.b},${tweaks.arcOpacity})`,
+        fill: rgba(arcColor, tweaks.arcOpacity),
         // stroke: '#fff',
       },
     }),
@@ -161,22 +221,25 @@ const renderPerson = (pid, showHover, hideHover) => {
       cy: center.y + Math.sin(tMid) * r0,
       r: tweaks.headDotSize,
       style: {
-        fill: `rgba(${color.r},${color.g},${color.b},${tweaks.dotOpacity})`,
+        // fill: `rgba(${color.r},${color.g},${color.b},${tweaks.dotOpacity})`,
+        fill: rgba(headColor, tweaks.dotOpacity),
       }
     }),
     tweaks.footDot && svgNode('circle', {
       cx: center.x + Math.cos(tMid) * r1,
       cy: center.y + Math.sin(tMid) * r1,
-      r: tweaks.footDotSize,
+      r: tweaks.footDotSize * (tweaks.largeFootEmigrated && (birthPlace && deathPlace && birthPlace !== deathPlace) ? 2 : 1),
       style: {
-        fill: `rgba(${color.r},${color.g},${color.b},${tweaks.dotOpacity})`,
+        // fill: `rgba(${color.r},${color.g},${color.b},${tweaks.dotOpacity})`,
+        fill: rgba(footColor, tweaks.dotOpacity),
       }
     }),
     tweaks.line && svgNode('path', {
       d: `M ${center.x + Math.cos(tMid) * r0} ${center.y + Math.sin(tMid) * r0}`
       + ` L ${center.x + Math.cos(tMid) * r1} ${center.y + Math.sin(tMid) * r1}`,
       style: {
-        stroke: `rgba(${color.r},${color.g},${color.b},${tweaks.lineOpacity})`,
+        // stroke: `rgba(${color.r},${color.g},${color.b},${tweaks.lineOpacity})`,
+        stroke: rgba(lineColor, tweaks.lineOpacity),
         strokeWidth: tweaks.lineWidth + 'px'
       },
     })
@@ -201,10 +264,10 @@ const renderPage = () => {
     [
       svgNode('svg', {
         width: 1100,
-        height: 850
+        height: 960,
       }, [
           svgNode('path', {
-            d: `M550 500 L` + arc(550, 500, Math.PI / 2 + Math.PI / 4, Math.PI / 2 + -Math.PI / 4, 500) + 'Z',
+            d: `M${center.x} ${center.y} L` + arc(center.x, center.y, Math.PI / 2 + Math.PI / 4, Math.PI / 2 + -Math.PI / 4, 500) + 'Z',
             style: {
               stroke: '#000',
               fill: 'none'
@@ -253,13 +316,32 @@ const tweakBody = (onChange, key) => {
 
 const renderTweaks = (onChange) => {
   console.log('rendering')
-  return div({}, Object.keys(tweaks).map(key => {
-    return div({
-    }, [
-      key,
-      tweakBody(onChange, key)
-    ])
-  }))
+  return div({}, [
+    div({style: {
+      display: 'flex',
+      flexDirection: 'row',
+    }}, Object.keys(presets).map(name => (
+      node('button', {onclick: () => {
+        Object.assign(tweaks, presets[name]);
+        onChange()
+      }}, [name])
+    ))),
+    Object.keys(groups).map(group => div({
+      style: {display: 'flex', flexDirection: 'row', flexWrap: 'wrap'} 
+    }, groups[group].map(key => div({
+          style: {marginRight: '8px', padding: '4px'}
+        }, [
+            key,
+            tweakBody(onChange, key)
+          ])
+      ))),
+    // div({style: }, [
+    //   Object.keys(tweaks).map(key => {
+    //     return 
+    //   }),
+    // ]),
+    node('input', { value: JSON.stringify(tweaks) })
+  ])
 }
 
 const rerenderable = (fn) => {
