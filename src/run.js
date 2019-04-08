@@ -144,9 +144,15 @@ const places = (cx, cy) => {
         for (let node of document.querySelectorAll('[data-birthPlace="' + place + '"]')) {
           node.classList.add('person-hover')
         }
+        for (let node of document.querySelectorAll('[data-deathPlace="' + place + '"]')) {
+          node.classList.add('person-hover')
+        }
       },
       onmouseout: (evt, node) => {
         for (let node of document.querySelectorAll('[data-birthPlace="' + place + '"]')) {
+          node.classList.remove('person-hover')
+        }
+        for (let node of document.querySelectorAll('[data-deathPlace="' + place + '"]')) {
           node.classList.remove('person-hover')
         }
       },
@@ -171,10 +177,10 @@ const places = (cx, cy) => {
 const rgba = ({r, g, b}, a) => `rgba(${r}, ${g}, ${b}, ${a})`;
 
 const getPlace = place => {
-  if (place && place.endsWith(', England, United Kingdom')) {
+  if (place && place.endsWith('England, United Kingdom')) {
     return 'England'
   }
-  if (place && place.endsWith(', Scotland, United Kingdom')) {
+  if (place && place.endsWith('Scotland, United Kingdom')) {
     return 'Scotland'
   }
   return place ? place.split(',').slice(-1)[0].trim() : null
