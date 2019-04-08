@@ -28,6 +28,6 @@ body {
   stroke: rgba(255,255,255,0.2)
 }
 .person-hover path {
-  stroke-width: 4px;
+  stroke-width: 2px;
   stroke: #000;
 }

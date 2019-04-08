@@ -137,11 +137,45 @@ const placeColor = place => {
   return placeColors[place]
 }
 
+const places = (cx, cy) => {
+  return Object.keys(placeColors).map((place, i) => {
+    return svgNode('g', {
+      onmouseenter: (evt, node) => {
+        for (let node of document.querySelectorAll('[data-birthPlace="' + place + '"]')) {
+          node.classList.add('person-hover')
+        }
+      },
+      onmouseout: (evt, node) => {
+        for (let node of document.querySelectorAll('[data-birthPlace="' + place + '"]')) {
+          node.classList.remove('person-hover')
+        }
+      },
+    }, [
+      svgNode('circle', {
+        style: {
+          fill: rgba(placeColors[place], 1)
+        },
+        cx: cx - 10,
+        cy: cy + i * 20 + 50 - 4,
+        r: 4,
+      }),
+      svgNode('text', {
+        textContent: place,
+        x: cx,
+        y: cy + i * 20 + 50,
+      })
+    ])
+  })
+};
+
 const rgba = ({r, g, b}, a) => `rgba(${r}, ${g}, ${b}, ${a})`;
 
 const getPlace = place => {
   if (place && place.endsWith(', England, United Kingdom')) {
     return 'England'
+  }
+  if (place && place.endsWith(', Scotland, United Kingdom')) {
+    return 'Scotland'
   }
   return place ? place.split(',').slice(-1)[0].trim() : null
 }
@@ -198,6 +232,8 @@ const renderPerson = (pid, showHover, hideHover) => {
 
   const me = svgNode('g', {
     class: 'person',
+    'data-birthPlace': birthPlace,
+    'data-deathPlace': deathPlace,
     onmousemove: (evt, node) => {
       node.setAttribute('class', 'person-hover')
       showHover({x: evt.clientX, y: evt.clientY}, person)
@@ -287,6 +323,7 @@ const renderPage = () => {
             hover.style.display = 'none'
           }),
           times(center.x, center.y, radius, minDate, maxDate, 20),
+          places(center.x, center.y),
         ]),
       div({
         class: 'hover',
